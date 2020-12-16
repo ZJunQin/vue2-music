@@ -79,34 +79,37 @@ export default {
     name: 'Play',
     data(){
         return {
-            musicUrl: '',
-            musicId: null,
-            musicName: '',
-            musicSingers: [],
-            musicLyric: [],
-            lyricRowActive: 0,
-            picUrl: '',
-            isPlay: false,
-            musicTimeAll: 0,
-            musicTimeNow: 0,
-            timer: null,
-            lyricInitTop: 0,
-            show: false
+            musicUrl: '',  //歌曲资源
+            musicId: null,  //歌曲id
+            musicName: '',  //歌曲名
+            musicSingers: [],  //歌手集
+            musicLyric: [],  //歌词
+            lyricRowActive: 0,  //当前播放歌词
+            picUrl: '',  //歌曲背景图
+            isPlay: false,  //是否正在播放
+            musicTimeAll: 0,  //歌曲总时长
+            musicTimeNow: 0,  //歌曲当前播放时长
+            timer: null,  //计时器
+            show: false  //播放列表显示/隐藏
         }
     },
     mounted(){
+        //渲染背景图
         this.setBackground()
 
+        //监听播放器播放时
         this.$refs.audio.addEventListener('play', () => {
             this.isPlay = true
             this.timer = setInterval(this.playing, 1000);
         })
 
+        //监听播放器暂停时
         this.$refs.audio.addEventListener('pause', () => {
             this.isPlay = false
             clearInterval(this.timer)
         })
 
+        //监听播放器播放资源准备好时
         this.$refs.audio.addEventListener('canplay', () => {
             this.musicTimeAll = this.$refs.audio.duration
             if(this.$refs.audio.autoplay){
@@ -114,10 +117,12 @@ export default {
             }
         })
 
+        //监听播放器播放完毕时
         this.$refs.audio.addEventListener('ended', () => {
             this.handleToPlayLastOrNext('next')
         })
 
+        //监听播放进度条被点击时
         this.$refs.progress.addEventListener('click', (ev) => {
             if(ev.stopPropagation){
                 ev.stopPropagation();
@@ -137,6 +142,7 @@ export default {
             ev.preventDefault()
         })
 
+        //监听进度按钮被拖动时
         this.$refs.progressBar.addEventListener('touchstart', (ev) => {
             this.$refs.audio.pause()
             if(ev.stopPropagation){
@@ -165,6 +171,7 @@ export default {
         })
     },
     beforeDestroy(){
+        //组件卸载前清除计时器
         clearInterval(this.timer)
     },
     computed: {
@@ -173,6 +180,7 @@ export default {
             playList: "playList",
             playingIndex: "playingIndex"
         }),
+        //格式化歌手
         singer: function(){
             let singer_str = ''
             this.musicSingers.map(item => {
@@ -180,14 +188,17 @@ export default {
             })
             return singer_str
         },
+        //格式化当前播放时长
         formatNowTime(){
             return this.formatTime(this.musicTimeNow)
         },
+        //格式化总播放时长
         formatAllTime(){
             return this.formatTime(this.musicTimeAll)
         }
     },
     watch: {
+        //监听当前播放时间，歌词随之滚动
         musicTimeNow: {
             handler(){
                 if(this.musicUrl.length == 0){
@@ -201,6 +212,7 @@ export default {
                 })
             }
         },
+        //监听正在播放的歌曲，切换歌曲
         playingMusic: {
             handler(){
                 try{
@@ -221,19 +233,11 @@ export default {
     },
     methods: {
         ...mapActions("play", ['playNextOrLast', 'selectMusic', 'clearAllPlayList', 'clearOneMusic']),
+        //返回上一页
         handleToBack: function(){
             this.$router.go(-1)
         },
-        /* getMusicInfo: function(){
-            const {url, id, name, singers, lyric, picUrl} = this.playingMusic
-            this.musicUrl = url
-            this.musicId = id
-            this.musicName = name
-            this.musicSingers = singers
-            this.musicLyric = this.formatLyricL(lyric)
-            this.picUrl = picUrl
-            this.setBackground()
-        }, */
+        //设置播放背景
         setBackground: function(){
             if(!this.$refs.bg)return
             this.$refs.bg.style.background = `url(${this.picUrl})`
@@ -241,6 +245,7 @@ export default {
             this.$refs.bg.style.backgroundSize = 'cover'
             this.$refs.bg.style.backgroundPosition = 'center'
         },
+        //处理歌词，从文本转成数组，方便遍历渲染
         formatLyricL: function(text){
             let musicLyric = []
             if(!text){
@@ -266,9 +271,11 @@ export default {
             musicLyric = musicLyric.filter(item => item.text)  //过滤掉歌词为空的项
             return musicLyric
         },
+        //处理歌词按时间排序
         sortRule: function(a, b){
             return a.time - b.time;
         },
+        //点击播放按钮
         handleToPlay: function(){
             if(this.$refs.audio.paused){
                 this.$refs.audio.play()
@@ -276,10 +283,12 @@ export default {
                 this.$refs.audio.pause()
             }
         },
+        //点击上一首或下一首按钮
         handleToPlayLastOrNext: async function(type){
             await this.playNextOrLast(type)
             this.handleToMusicIsNull()
         },
+        //处理当前播放资源为空的情况，自动播放下一首
         handleToMusicIsNull: function(){
             if(!this.musicUrl){
                 setTimeout(() => {
@@ -287,6 +296,7 @@ export default {
                 }, 2000)
             }
         },
+        //音乐播放中处理事件
         playing: function(){
             if(!this.$refs.audio){
                 return
@@ -296,12 +306,14 @@ export default {
             this.$refs.progressNow.style.width = scale * 100 + '%';
             this.$refs.progressBar.style.left = scale * 100 + '%'
         },
+        //格式化播放时间
         formatTime: function(num){
             num = Math.round(num);
             let min = Math.floor(num/60);
             let sec = num%60;
             return this.setZero(min) + ':' + this.setZero(sec);
         },
+        //时间小于10时，前面加0操作
         setZero: function(num){
             if(num < 10){
                 return '0' + num;
@@ -309,9 +321,11 @@ export default {
                 return '' + num;
             }
         },
+        //弹出播放列表
         showPop: function(){
             this.show = true
         },
+        //格式化歌手，将数组转成文本
         handleSinger: function(singers){
             let singer_str = ''
             singers.map(item => {
@@ -319,10 +333,12 @@ export default {
             })
             return singer_str
         },
+        //播放列表选择切歌
         handleToSelectMusic: async function(index){
             await this.selectMusic(index)
             this.handleToMusicIsNull()
         },
+        //清空播放列表
         clearAll: function(){
             this.$dialog.confirm({
                 title: '清空播放列表',
@@ -337,6 +353,7 @@ export default {
                 }
             })
         },
+        //清除播放列表里的某一首歌
         clearOne: function(index){
             this.$dialog.confirm({
                 title: '清除歌曲',
