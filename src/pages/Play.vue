@@ -8,7 +8,7 @@
             <i class="iconfont icon-back" @click="handleToBack"></i>
             <div class="title">
                 <p class="music_name">{{musicName}}</p>
-                <p class="music_singer">{{singer}}</p>
+                <p class="music_singer">{{handleSinger(musicSingers)}}</p>
             </div>
             <i class="iconfont icon-bofangliebiaoguanli" @click="showPop"></i>
         </div>
@@ -180,14 +180,6 @@ export default {
             playList: "playList",
             playingIndex: "playingIndex"
         }),
-        //格式化歌手
-        singer: function(){
-            let singer_str = ''
-            this.musicSingers.map(item => {
-                singer_str = singer_str + ' ' + item.name
-            })
-            return singer_str
-        },
         //格式化当前播放时长
         formatNowTime(){
             return this.formatTime(this.musicTimeNow)
@@ -562,10 +554,11 @@ export default {
         ul{
             li{
                 overflow: hidden;
-                line-height: 30px;
+                line-height: 40px;
                 position: relative;
                 p{
                     float: left;
+                    width: 85%;
                     font-size: 14px;
                     color: #333;
                     overflow: hidden;
