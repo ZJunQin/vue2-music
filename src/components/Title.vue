@@ -1,5 +1,8 @@
 <template>
-    <div class="appTitle">{{text}}</div>
+    <div class="appTitle">
+        {{text}}
+        <slot></slot>
+    </div>
 </template>
 
 <script>
@@ -17,6 +20,7 @@ export default {
     padding-left: 10px;
     margin: 20px 0;
     font-size: 17px;
+    overflow: hidden;
     &::after{
         content: " ";
         position: absolute;

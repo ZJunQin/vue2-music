@@ -1,6 +1,6 @@
 <template>
     <div id="play" v-if="playList.length !== 0">
-        <div class="bg" ref="bg"></div>
+        <div class="bg" ref="bg" :style="{backgroundImage: `url(${picUrl})`}"></div>
         <audio ref="audio" muted="false" autoplay="autoplay" :src="musicUrl">
             您的浏览器不支持 audio 标签。
         </audio>
@@ -14,9 +14,9 @@
         </div>
         <div class="lyric-contain" ref="lyricContain">
             <div class="song-lyric" ref="lyric" v-if="musicUrl && musicLyric.length != 0">
-                <p v-for="(item, index) in musicLyric" :key="index" :class="lyricRowActive==index?'lyric-row lyric-row-active':'lyric-row'">
+                <div v-for="(item, index) in musicLyric" :key="index" :class="lyricRowActive==index?'lyric-row lyric-row-active':'lyric-row'" :ref="lyricRowActive==index?'lyricRow':''">
                     {{item.text}}
-                </p>
+                </div>
             </div>
             <div class="no-source" v-else>
                 {{!musicUrl?'暂无资源~':'暂无歌词~'}}
@@ -32,14 +32,14 @@
                 <p class="time-all">{{formatAllTime}}</p>
             </div>
             <div class="btn-row">
-                <div class="last_btn" @click="handleToPlayLastOrNext('last')">
-                    <i class="iconfont icon-shangyishou"></i>
+                <div class="last_btn">
+                    <i class="iconfont icon-shangyishou" @click="handleToPlayLastOrNext('last')"></i>
                 </div>
                 <div class="play_btn" @click="handleToPlay">
                     <i :class="isPlay && musicUrl?'iconfont icon-zantinganniu':'iconfont icon-bofanganniu'"></i>
                 </div>
-                <div class="next_btn" @click="handleToPlayLastOrNext('next')">
-                    <i class="iconfont icon-xiayishou"></i>
+                <div class="next_btn">
+                    <i class="iconfont icon-xiayishou" @click="handleToPlayLastOrNext('next')"></i>
                 </div>
             </div>
         </div>
@@ -88,15 +88,13 @@ export default {
             picUrl: '',  //歌曲背景图
             isPlay: false,  //是否正在播放
             musicTimeAll: 0,  //歌曲总时长
-            musicTimeNow: 0,  //歌曲当前播放时长
+            musicTimeNow: '',  //歌曲当前播放时长
             timer: null,  //计时器
             show: false  //播放列表显示/隐藏
         }
     },
     mounted(){
-        //渲染背景图
-        this.setBackground()
-
+        this.musicTimeNow = 0
         //监听播放器播放时
         this.$refs.audio.addEventListener('play', () => {
             this.isPlay = true
@@ -200,9 +198,31 @@ export default {
                     if(Math.round(this.musicTimeNow) == item.time){
                         this.$refs.lyric.style.top = - index * 30 + this.$refs.lyricContain.offsetWidth / 2 + 'px'
                         this.lyricRowActive = index
+                        
+                        let diffTime = 0
+                        try{
+                            diffTime = this.musicLyric[index + 1].time - item.time - 1
+                            if(diffTime <= 0){
+                                diffTime = 1
+                            }
+                        }catch(err){
+                            diffTime = 1
+                        }
+                        this.$nextTick(() => {
+                            const contentW = this.$refs.lyric.offsetWidth
+                            const rowW =  this.$refs.lyricRow[0].clientWidth
+                            if(contentW > rowW){
+                                return
+                            }
+                            const diffL = contentW - rowW
+                            this.$refs.lyricRow[0].style.transition = `left ${diffTime}s linear`
+                            this.$refs.lyricRow[0].style.left = diffL + 'px'
+                        })
+                        
                     }
                 })
-            }
+            },
+            immediate: true
         },
         //监听正在播放的歌曲，切换歌曲
         playingMusic: {
@@ -215,7 +235,6 @@ export default {
                     this.musicSingers = singers
                     this.musicLyric = this.formatLyricL(lyric)
                     this.picUrl = picUrl
-                    this.setBackground()
                 }catch(err){
                     console.warn('列表为空，无播放资源')
                 }
@@ -228,14 +247,6 @@ export default {
         //返回上一页
         handleToBack: function(){
             this.$router.go(-1)
-        },
-        //设置播放背景
-        setBackground: function(){
-            if(!this.$refs.bg)return
-            this.$refs.bg.style.background = `url(${this.picUrl})`
-            this.$refs.bg.style.backgroundRepeat = 'no-repeat'
-            this.$refs.bg.style.backgroundSize = 'cover'
-            this.$refs.bg.style.backgroundPosition = 'center'
         },
         //处理歌词，从文本转成数组，方便遍历渲染
         formatLyricL: function(text){
@@ -378,11 +389,9 @@ export default {
         top: 0;
         left: 0;
         z-index: -1;
-        /* -webkit-filter: blur(15px);
-        -moz-filter: blur(15px);
-        -o-filter: blur(15px);
-        -ms-filter: blur(15px); */
-        //filter: blur(20px);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
         opacity: .5;
     }
     .Header{
@@ -431,15 +440,23 @@ export default {
             position: absolute;
             top: calc(50% - 30px);
             transition: top .5s;
+            overflow: hidden;
             .lyric-row{
+                width: fit-content;
+                width: -webkit-fit-content;
+                width: -moz-fit-content;
+                position: relative;
+                left: 0;
                 text-align: center;
                 font-size: 14px;
                 color: #333;
                 line-height: 30px;
                 opacity: 0.7;
+                white-space: nowrap;
+                margin: auto;
             }
             .lyric-row-active{
-                font-size: 16px;
+                //font-size: 16px;
                 font-weight: bold;
                 opacity: 1;
             }

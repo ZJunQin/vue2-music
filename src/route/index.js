@@ -4,6 +4,7 @@ import Home from '@/pages/Home.vue'
 import Play from '@/pages/Play.vue'
 import Recommend from '@/pages/Recommend.vue'
 import Search from '@/pages/Search.vue'
+import Detail from '@/pages/Detail.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -17,9 +18,6 @@ const routes = [
         path: '/',
         name: 'Home',
         component: Home,
-        meta: { 
-            index: 0    
-        },
         redirect: '/recommend',
         children: [
             {
@@ -42,10 +40,11 @@ const routes = [
     },{
         path: '/play',
         name: 'Play',
-        component: Play,
-        meta: { 
-            index: 3
-        }
+        component: Play
+    },{
+        path: '/detail',
+        name: 'Detail',
+        component: Detail
     }
 ]
 

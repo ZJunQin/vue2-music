@@ -4,7 +4,7 @@
             <div class="song-result-item" v-for="(item, index) in songList" :key="index" @click="handleToPlay(item.id)">
             <div class="song-result-word">
                 <div>{{item.name}}</div>
-                <div>{{handleSinger(item.artists)}}-{{item.album.name}}</div>
+                <div>{{handleSinger(item.artists?item.artists:item.ar)}}</div>
             </div>
             <i class="iconfont icon-bofanganniu"></i>
             </div>
@@ -35,9 +35,9 @@ export default {
         handleSinger: function(singers){
             let singer_str = ''
             singers.map(item => {
-                singer_str = singer_str + ' ' + item.name
+                singer_str = singer_str + '/' + item.name
             })
-            return singer_str
+            return singer_str.substr(1)
         },
     }
 }
@@ -57,6 +57,9 @@ export default {
         padding: 10px 0;
         margin-bottom: 15px;
         border-bottom: 1px solid #e4e4e4;
+        &:last-child{
+            margin-bottom: 0;
+        }
     }
     .song-result-word div:nth-child(1){
         font-size: 16px;
